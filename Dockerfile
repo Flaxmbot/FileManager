@@ -38,7 +38,12 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app \
     PATH="/opt/venv/bin:$PATH" \
     PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    BOT_TOKEN="8431223774:AAHa0Hi3FVTSCS7fOK31NX1gzPz2ud-pHJM" \
+    DATABASE_URL="sqlite+aiosqlite:///data/filemanager.db" \
+    SECRET_KEY="hellomf" \
+    ENCRYPTION_KEY="tmkc" \
+    ADMIN_USER_ID="5445671392"
 
 # Install only runtime system dependencies
 RUN apt-get update && apt-get install -y \
