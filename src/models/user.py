@@ -7,7 +7,7 @@ from enum import Enum
 from typing import List, Optional
 
 from sqlalchemy import Boolean, String
-from sqlalchemy.sql import DateTime
+from sqlalchemy.sql.sqltypes import DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.models.base import BaseModel
