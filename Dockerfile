@@ -1,6 +1,6 @@
 # Multi-stage Dockerfile for FileManager Telegram Bot
 # Stage 1: Builder
-FROM python:3.11-slim as builder
+FROM python:3.12-slim as builder
 
 # Set build arguments
 ARG NODE_ENV=production
@@ -30,7 +30,7 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
     pip install --no-cache-dir -r requirements.txt
 
 # Stage 2: Runtime
-FROM python:3.11-slim as runtime
+FROM python:3.12-slim as runtime
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
@@ -43,7 +43,7 @@ ENV PYTHONUNBUFFERED=1 \
 # Install only runtime system dependencies
 RUN apt-get update && apt-get install -y \
     libpq5 \
-    libffi7 \
+    libffi8 \
     libssl3 \
     curl \
     && apt-get clean \
