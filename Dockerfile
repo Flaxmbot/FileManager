@@ -95,8 +95,6 @@ EXPOSE 10000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
     CMD python /app/healthcheck.py || exit 1
 
-# Security: Set resource limits
-RUN ulimit -c 0 -d 1048576 -f 1048576 -l 65536 -n 1024 -s 8192 -t unlimited -v 1048576
-
+# Resource limits are better set through Docker run command or compose file
 # Start command with proper configuration
 CMD ["python", "-m", "src.main"]
