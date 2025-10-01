@@ -23,6 +23,45 @@ from src.utils.logger import setup_logging
 from src.monitoring import run_health_server
 
 
+async def send_startup_notification(bot: Bot) -> None:
+    """Send startup notification to admin users"""
+    from datetime import datetime
+
+    try:
+        # Send to primary admin
+        if settings.ADMIN_USER_ID:
+            startup_message = (
+                "🚀 <b>FileManager Bot is now ONLINE!</b>\n\n"
+                f"⏰ <b>Startup Time:</b> {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}\n"
+                f"🔗 <b>Web Interface:</b> https://filemanager-af27.onrender.com\n"
+                f"🌐 <b>Environment:</b> {settings.ENVIRONMENT.title()}\n"
+                f"📊 <b>Status:</b> Operational\n\n"
+                "✅ All systems are running and ready to accept connections!"
+            )
+
+            await bot.send_message(
+                chat_id=settings.ADMIN_USER_ID,
+                text=startup_message,
+                parse_mode='HTML'
+            )
+            logger = logging.getLogger(__name__)
+            logger.info(f"Startup notification sent to admin {settings.ADMIN_USER_ID}")
+
+        # Send to additional admin users if configured
+        for admin_id in settings.ADMIN_USER_IDS:
+            if admin_id != settings.ADMIN_USER_ID:  # Avoid duplicate message to primary admin
+                await bot.send_message(
+                    chat_id=admin_id,
+                    text=startup_message,
+                    parse_mode='HTML'
+                )
+                logger.info(f"Startup notification sent to admin {admin_id}")
+
+    except Exception as e:
+        logger = logging.getLogger(__name__)
+        logger.error(f"Failed to send startup notification: {e}")
+
+
 async def run_telegram_bot() -> None:
     """Run the Telegram bot"""
     logger = logging.getLogger(__name__)
@@ -47,6 +86,9 @@ async def run_telegram_bot() -> None:
     await EncryptionManager.initialize()
     await DeviceManager.initialize()
     logger.info("Bot initialized successfully")
+
+    # Send startup notification to admin
+    await send_startup_notification(bot)
 
     # Start polling
     try:
