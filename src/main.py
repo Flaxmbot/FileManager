@@ -11,7 +11,6 @@ from contextlib import asynccontextmanager
 
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.fsm.storage.redis import RedisStorage
 
 from src.config.settings import settings
 from src.database.session import engine
@@ -28,7 +27,7 @@ from src.monitoring import run_health_server
 async def lifespan(app: Dispatcher):
     """Application lifespan manager"""
     # Startup
-    logger.info("Starting FileManager Telegram Bot...")
+    logging.getLogger(__name__).info("Starting FileManager Telegram Bot...")
 
     # Initialize database
     async with engine.begin() as conn:
@@ -40,12 +39,12 @@ async def lifespan(app: Dispatcher):
     # Initialize device manager
     await DeviceManager.initialize()
 
-    logger.info("Bot initialized successfully")
+    logging.getLogger(__name__).info("Bot initialized successfully")
 
     yield
 
     # Shutdown
-    logger.info("Shutting down bot...")
+    logging.getLogger(__name__).info("Shutting down bot...")
     await engine.dispose()
 
 
@@ -56,13 +55,9 @@ async def run_telegram_bot() -> None:
     # Initialize bot and dispatcher
     bot = Bot(token=settings.BOT_TOKEN, parse_mode="HTML")
 
-    # Use Redis storage if available, otherwise memory storage
-    try:
-        storage = RedisStorage.from_url(settings.REDIS_URL)
-        logger.info("Using Redis storage for FSM")
-    except Exception as e:
-        logger.warning(f"Redis not available, using memory storage: {e}")
-        storage = MemoryStorage()
+    # Use memory storage for FSM
+    storage = MemoryStorage()
+    logger.info("Using memory storage for FSM")
 
     dp = Dispatcher(storage=storage)
     dp.lifespan.register(lifespan)
