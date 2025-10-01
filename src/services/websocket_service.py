@@ -16,7 +16,6 @@ from sqlalchemy.orm import Session
 from ..models.device import Device
 from ..models.user import User
 from ..database.session import get_db
-from ..security.encryption import encrypt_message, decrypt_message
 
 
 class WebSocketService:
