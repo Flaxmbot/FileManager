@@ -7,7 +7,6 @@ Comprehensive remote device control and file management bot
 import asyncio
 import logging
 import sys
-from contextlib import asynccontextmanager
 
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
@@ -24,31 +23,6 @@ from src.utils.logger import setup_logging
 from src.monitoring import run_health_server
 
 
-@asynccontextmanager
-async def lifespan(app: Dispatcher):
-    """Application lifespan manager"""
-    # Startup
-    logging.getLogger(__name__).info("Starting FileManager Telegram Bot...")
-
-    # Initialize database
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
-    # Initialize encryption manager
-    await EncryptionManager.initialize()
-
-    # Initialize device manager
-    await DeviceManager.initialize()
-
-    logging.getLogger(__name__).info("Bot initialized successfully")
-
-    yield
-
-    # Shutdown
-    logging.getLogger(__name__).info("Shutting down bot...")
-    await engine.dispose()
-
-
 async def run_telegram_bot() -> None:
     """Run the Telegram bot"""
     logger = logging.getLogger(__name__)
@@ -61,10 +35,18 @@ async def run_telegram_bot() -> None:
     logger.info("Using memory storage for FSM")
 
     dp = Dispatcher(storage=storage)
-    dp.lifespan.register(lifespan)
 
-    # Setup handlers
+    # Setup handlers first
     await setup_handlers(dp)
+
+    # Manual startup initialization
+    logger.info("Initializing database and services...")
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+    await EncryptionManager.initialize()
+    await DeviceManager.initialize()
+    logger.info("Bot initialized successfully")
 
     # Start polling
     try:
@@ -76,6 +58,8 @@ async def run_telegram_bot() -> None:
         logger.error(f"Telegram bot error: {e}")
         raise
     finally:
+        logger.info("Shutting down bot...")
+        await engine.dispose()
         await bot.session.close()
 
 
