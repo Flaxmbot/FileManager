@@ -40,14 +40,9 @@ services:
         reservations:
           cpus: '0.25'
           memory: 256M
-
-  # PostgreSQL Database
-  postgres:
-    image: postgres:15-alpine
-    container_name: filemanager-postgres
-    restart: unless-stopped
-    environment:
-      - POSTGRES_DB=${POSTGRES_DB:-filemanager_prod}
+networks:
+  filemanager-network:
+    driver: bridge
       - POSTGRES_USER=${POSTGRES_USER:-filemanager_prod}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_INITDB_ARGS=--auth-host=scram-sha-256
