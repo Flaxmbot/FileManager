@@ -16,16 +16,10 @@ from .common import common_router
 async def setup_handlers(dp: Dispatcher) -> None:
     """Setup all bot handlers"""
 
-    # Include all routers
+    # Include all routers - this is the correct way in aiogram 3.x
     dp.include_router(start_router)
     dp.include_router(auth_router)
     dp.include_router(device_router)
     dp.include_router(files_router)
     dp.include_router(media_router)
     dp.include_router(common_router)
-
-    # Register command handlers
-    dp.message.register(start_router.message_handler, Command("start"))
-    dp.message.register(auth_router.message_handler, Command("auth"))
-    dp.message.register(device_router.message_handler, Command("list", "download", "upload", "delete", "search", "info"))
-    dp.message.register(media_router.message_handler, Command("screenshot", "screenview"))
