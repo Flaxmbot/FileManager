@@ -5,7 +5,8 @@ Base database model
 from datetime import datetime
 from typing import Any, Dict
 
-from sqlalchemy import DateTime, Integer, func
+from sqlalchemy import Integer, func
+from sqlalchemy.sql import DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Mapped, mapped_column
 
