@@ -19,16 +19,16 @@ class Settings(BaseSettings):
 
     # Database Configuration
     DATABASE_URL: str = Field(
-        "postgresql+asyncpg://user:password@localhost/filemanager",
+        "sqlite+aiosqlite:///data/filemanager.db",
         env="DATABASE_URL",
-        description="PostgreSQL connection URL"
+        description="SQLite database URL"
     )
 
-    # Redis Configuration
-    REDIS_URL: str = Field(
-        "redis://localhost:6379",
-        env="REDIS_URL",
-        description="Redis connection URL"
+    # Admin User Configuration
+    ADMIN_USER_ID: int = Field(
+        5445671392,
+        env="ADMIN_USER_ID",
+        description="Telegram Admin User ID"
     )
 
     # Security Configuration
