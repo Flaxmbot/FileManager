@@ -6,6 +6,7 @@ import os
 from typing import Optional
 
 from aiogram import Router
+from aiogram.filters import Command
 from aiogram.types import Message
 
 from src.services.device_manager import DeviceManager
@@ -16,7 +17,7 @@ logger = get_logger(__name__)
 files_router = Router()
 
 
-@files_router.message(commands=["list"])
+@files_router.message(Command("list"))
 async def cmd_list_files(message: Message) -> None:
     """Handle /list command to list files and directories"""
     try:
@@ -143,7 +144,7 @@ async def cmd_list_files(message: Message) -> None:
         )
 
 
-@files_router.message(commands=["download"])
+@files_router.message(Command("download"))
 async def cmd_download_file(message: Message) -> None:
     """Handle /download command to download files from device"""
     try:
@@ -225,7 +226,7 @@ async def cmd_download_file(message: Message) -> None:
         )
 
 
-@files_router.message(commands=["delete"])
+@files_router.message(Command("delete"))
 async def cmd_delete_file(message: Message) -> None:
     """Handle /delete command to delete files from device"""
     try:

@@ -3,6 +3,7 @@ Authentication command handler
 """
 
 from aiogram import Router
+from aiogram.filters import Command
 from aiogram.types import Message
 
 from src.services.device_service import DeviceService
@@ -13,7 +14,7 @@ logger = get_logger(__name__)
 auth_router = Router()
 
 
-@auth_router.message(commands=["auth"])
+@auth_router.message(Command("auth"))
 async def cmd_auth(message: Message) -> None:
     """Handle /auth command for device authentication"""
     try:

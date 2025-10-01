@@ -6,6 +6,7 @@ import asyncio
 import os
 
 from aiogram import Router
+from aiogram.filters import Command
 from aiogram.types import Message
 
 from src.services.device_manager import DeviceManager
@@ -17,7 +18,7 @@ logger = get_logger(__name__)
 device_router = Router()
 
 
-@device_router.message(commands=["info"])
+@device_router.message(Command("info"))
 async def cmd_device_info(message: Message) -> None:
     """Handle /info command to get device information"""
     try:
@@ -118,7 +119,7 @@ async def cmd_device_info(message: Message) -> None:
         )
 
 
-@device_router.message(commands=["list", "download", "upload", "delete", "search"])
+@device_router.message(Command("list"), Command("download"), Command("upload"), Command("delete"), Command("search"))
 async def cmd_file_operations(message: Message) -> None:
     """Handle file operation commands with device validation"""
     try:

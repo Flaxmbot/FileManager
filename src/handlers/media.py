@@ -7,6 +7,7 @@ import os
 from typing import Optional
 
 from aiogram import Router
+from aiogram.filters import Command
 from aiogram.types import Message
 
 from src.services.device_manager import DeviceManager
@@ -17,7 +18,7 @@ logger = get_logger(__name__)
 media_router = Router()
 
 
-@media_router.message(commands=["screenshot"])
+@media_router.message(Command("screenshot"))
 async def cmd_screenshot(message: Message) -> None:
     """Handle /screenshot command to capture device screenshot"""
     try:
@@ -98,7 +99,7 @@ async def cmd_screenshot(message: Message) -> None:
         )
 
 
-@media_router.message(commands=["screenview"])
+@media_router.message(Command("screenview"))
 async def cmd_screenview(message: Message) -> None:
     """Handle /screenview command to stream device screen"""
     try:
