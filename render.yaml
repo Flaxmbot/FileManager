@@ -1,0 +1,236 @@
+services:
+  # Main Bot Web Service
+  - type: web
+    name: filemanager-bot
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    buildCommand: "echo 'Build completed via Dockerfile'"
+    startCommand: "python -m src.main"
+    envVars:
+      # Bot Configuration
+      - key: BOT_TOKEN
+        fromSecret: bot-token
+      - key: BOT_WEBHOOK_URL
+        fromService:
+          type: web
+          name: filemanager-bot
+          property: host
+      - key: BOT_WEBHOOK_PATH
+        value: /webhook
+
+      # Database Configuration
+      - key: DATABASE_URL
+        fromService:
+          type: pserv
+          name: filemanager-postgres
+          property: connectionString
+
+      # Redis Configuration
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: filemanager-redis
+          property: connectionString
+
+      # Security Configuration
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ENCRYPTION_KEY
+        generateValue: true
+
+      # Application Configuration
+      - key: ENVIRONMENT
+        value: production
+      - key: LOG_LEVEL
+        value: INFO
+      - key: API_HOST
+        value: 0.0.0.0
+      - key: API_PORT
+        value: 10000
+
+      # File Management
+      - key: MAX_FILE_SIZE
+        value: "52428800"  # 50MB
+      - key: UPLOAD_DIR
+        value: /app/uploads
+      - key: MAX_CONNECTIONS_PER_USER
+        value: "3"
+
+      # Performance & Monitoring
+      - key: DEVICE_TIMEOUT
+        value: "30"
+      - key: WS_HEARTBEAT_INTERVAL
+        value: "30"
+      - key: WS_TIMEOUT
+        value: "60"
+
+      # Rate Limiting
+      - key: RATE_LIMIT_REQUESTS
+        value: "60"
+      - key: RATE_LIMIT_WINDOW
+        value: "60"
+
+    # Health Check Configuration
+    healthCheckPath: /health
+    initialHealthCheckDelay: 30
+    healthCheckTimeout: 10
+    healthCheckInterval: 30
+    healthCheckMaxRetries: 3
+
+    # Auto Deployment
+    autoDeploy: true
+    autoDeployRetries: 3
+
+    # Scaling Configuration
+    numInstances: 2
+    minInstances: 1
+    maxInstances: 5
+    verticalScale:
+      memory: 1024  # 1GB RAM
+      cpu: 1000     # 1 CPU core
+
+    # Disk Configuration
+    disk:
+      name: bot-data
+      mountPath: /app/data
+      sizeGB: 10
+      critical: false
+
+    # Networking
+    port: 10000
+
+    # Logging Configuration
+    logDestination:
+      name: filemanager-bot-logs
+      retention: 30  # days
+
+  # PostgreSQL Database Service
+  - type: pserv
+    name: filemanager-postgres
+    runtime: docker
+    dockerfilePath: ./docker/postgres/Dockerfile
+    buildCommand: "echo 'PostgreSQL build completed'"
+    startCommand: "docker-entrypoint.sh postgres"
+    envVars:
+      - key: POSTGRES_DB
+        value: filemanager
+      - key: POSTGRES_USER
+        value: filemanager_user
+      - key: POSTGRES_PASSWORD
+        fromSecret: postgres-password
+      - key: POSTGRES_INITDB_ARGS
+        value: "--encoding=UTF-8 --lc-collate=en_US.UTF-8 --lc-ctype=en_US.UTF-8"
+      - key: PGDATA
+        value: /var/lib/postgresql/data/pgdata
+
+    # Database Configuration
+    databaseName: filemanager
+    databaseUser: filemanager_user
+
+    # Disk Configuration
+    disk:
+      name: postgres-data
+      mountPath: /var/lib/postgresql/data
+      sizeGB: 50
+      critical: true
+
+    # Backup Configuration
+    backupConfiguration:
+      enabled: true
+      retentionDays: 30
+      schedule: "0 2 * * *"  # Daily at 2 AM UTC
+      pointInTimeRecovery: true
+
+    # High Availability
+    highAvailability: true
+
+    # Monitoring
+    logDestination:
+      name: postgres-logs
+      retention: 30
+
+  # Redis Cache Service
+  - type: redis
+    name: filemanager-redis
+    ipAllowList: []  # Only accessible by other services in this project
+    maxMemoryPolicy: allkeys-lru
+    maxMemory: 256  # MB
+
+    # Redis Configuration
+    redisVersion: "7.2"
+    persistence: true
+
+    # Monitoring
+    logDestination:
+      name: redis-logs
+      retention: 7
+
+# Environment Variable Groups
+envVarGroups:
+  - name: production-env
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: LOG_LEVEL
+        value: WARNING
+      - key: DEBUG
+        value: "false"
+
+  - name: staging-env
+    envVars:
+      - key: ENVIRONMENT
+        value: staging
+      - key: LOG_LEVEL
+        value: INFO
+      - key: DEBUG
+        value: "true"
+
+# Custom Domains (add your domain here)
+# customDomains:
+#   - name: your-domain.com
+#     service: filemanager-bot
+
+# Static Sites (if needed for web interface)
+# staticSites:
+#   - name: filemanager-web
+#     buildCommand: "npm run build"
+#     staticPublishPath: "dist"
+
+# Cron Jobs for Maintenance Tasks
+cronJobs:
+  - name: cleanup-temp-files
+    schedule: "0 0 * * *"  # Daily at midnight
+    command: "find /app/uploads -type f -mtime +7 -delete"
+    service: filemanager-bot
+
+  - name: database-maintenance
+    schedule: "0 1 * * 0"  # Weekly on Sunday at 1 AM
+    command: "python -c 'from src.database.session import engine; print(\"DB maintenance completed\")'"
+    service: filemanager-bot
+
+# Alerts and Notifications
+alerts:
+  - name: high-cpu-usage
+    condition: "cpu_usage > 80%"
+    service: filemanager-bot
+    notificationChannels: ["email"]
+
+  - name: high-memory-usage
+    condition: "memory_usage > 85%"
+    service: filemanager-bot
+    notificationChannels: ["email"]
+
+  - name: database-connection-failures
+    condition: "database_connection_failures > 5"
+    service: filemanager-postgres
+    notificationChannels: ["email"]
+
+# Monitoring Dashboard
+dashboards:
+  - name: filemanager-monitoring
+    services: ["filemanager-bot", "filemanager-postgres", "filemanager-redis"]
+    widgets:
+      - type: metrics
+        metrics: ["cpu", "memory", "disk"]
+      - type: logs
+        logSources: ["filemanager-bot-logs", "postgres-logs", "redis-logs"]
