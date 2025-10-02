@@ -85,8 +85,9 @@ class User(BaseModel):
 
     # Relationships
     devices = relationship("Device", back_populates="user", cascade="all, delete-orphan")
-    sessions = relationship("UserSession", back_populates="user", cascade="all, delete-orphan")
-    operation_logs = relationship("OperationLog", back_populates="user", cascade="all, delete-orphan")
+    # TODO: Add UserSession and OperationLog models if needed
+    # sessions = relationship("UserSession", back_populates="user", cascade="all, delete-orphan")
+    # operation_logs = relationship("OperationLog", back_populates="user", cascade="all, delete-orphan")
 
     @property
     def permissions(self) -> List[Permission]:

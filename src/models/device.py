@@ -145,8 +145,9 @@ class Device(BaseModel):
 
     # Relationships
     user = relationship("User", back_populates="devices", foreign_keys=[user_id])
-    sessions = relationship("DeviceSession", back_populates="device", cascade="all, delete-orphan")
-    operation_logs = relationship("OperationLog", back_populates="device", cascade="all, delete-orphan")
+    # TODO: Add DeviceSession and OperationLog models if needed
+    # sessions = relationship("DeviceSession", back_populates="device", cascade="all, delete-orphan")
+    # operation_logs = relationship("OperationLog", back_populates="device", cascade="all, delete-orphan")
 
     def is_online(self) -> bool:
         """Check if device is currently online"""
