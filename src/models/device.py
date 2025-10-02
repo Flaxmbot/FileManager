@@ -6,7 +6,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Dict, List, Optional
 
-from sqlalchemy import Boolean, JSON, String, Text, DateTime
+from sqlalchemy import Boolean, JSON, String, Text, DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.models.base import BaseModel
@@ -34,6 +34,7 @@ class Device(BaseModel):
     __tablename__ = "devices"
 
     user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id"),
         nullable=False,
         index=True,
         comment="User who owns this device"
@@ -143,7 +144,7 @@ class Device(BaseModel):
     )
 
     # Relationships
-    user = relationship("User", back_populates="devices")
+    user = relationship("User", back_populates="devices", foreign_keys=[user_id])
     sessions = relationship("DeviceSession", back_populates="device", cascade="all, delete-orphan")
     operation_logs = relationship("OperationLog", back_populates="device", cascade="all, delete-orphan")
 
