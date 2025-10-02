@@ -22,7 +22,7 @@ async def cmd_auth(message: Message) -> None:
         args = message.text.split()
         if len(args) < 2:
             await message.reply(
-                "❌ <b>Usage:</b> /auth <token>\n\n"
+                "❌ <b>Usage:</b> /auth [token]\n\n"
                 "<b>Example:</b> /auth abc123def456\n\n"
                 "Get your authentication token from the FileManager Android app:\n"
                 "Settings > Telegram Bot > Generate Token",

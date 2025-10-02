@@ -177,7 +177,7 @@ async def cmd_file_operations(message: Message) -> None:
             args = message.text.split()
             if len(args) < 2:
                 await message.reply(
-                    "❌ <b>Usage:</b> /list <path>\n\n"
+                    "❌ <b>Usage:</b> /list [path]\n\n"
                     "<b>Example:</b> /list /sdcard/Documents",
                     parse_mode="HTML"
                 )
@@ -211,7 +211,7 @@ async def cmd_file_operations(message: Message) -> None:
             args = message.text.split()
             if len(args) < 2:
                 await message.reply(
-                    "❌ <b>Usage:</b> /download <file_path>",
+                    "❌ <b>Usage:</b> /download [file_path]",
                     parse_mode="HTML"
                 )
                 return
@@ -238,7 +238,7 @@ async def cmd_file_operations(message: Message) -> None:
             args = message.text.split()
             if len(args) < 2:
                 await message.reply(
-                    "❌ <b>Usage:</b> /search <query>",
+                    "❌ <b>Usage:</b> /search [query]",
                     parse_mode="HTML"
                 )
                 return
