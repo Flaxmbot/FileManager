@@ -51,6 +51,7 @@ async def cmd_start(message: Message) -> None:
 
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="📱 Connect Device", callback_data="connect_device")],
+            [InlineKeyboardButton(text="👑 Request Admin Access", callback_data=f"admin_request:{message.from_user.id}")],
             [InlineKeyboardButton(text="📋 Commands Help", callback_data="show_commands")],
             [InlineKeyboardButton(text="ℹ️ About", callback_data="about_bot")]
         ])
@@ -137,11 +138,13 @@ async def handle_about_bot(callback: CallbackQuery):
         "• Screenshot capture\n"
         "• Screen streaming\n"
         "• Secure encrypted connection\n"
-        "• Real-time file browsing\n\n"
+        "• Real-time file browsing\n"
+        "• Admin device control\n\n"
         "🔒 <b>Security:</b>\n"
         "• End-to-end encryption\n"
         "• Token-based authentication\n"
-        "• Secure WebSocket connection\n\n"
+        "• Secure WebSocket connection\n"
+        "• Admin-only device access\n\n"
         "📱 <b>Requirements:</b>\n"
         "• Android device with FileManager app\n"
         "• Active internet connection\n"
@@ -150,4 +153,110 @@ async def handle_about_bot(callback: CallbackQuery):
         parse_mode="HTML",
         reply_markup=None
     )
+    await callback.answer()
+
+
+@start_router.callback_query(lambda c: c.data.startswith("admin_request:"))
+async def handle_admin_request(callback: CallbackQuery):
+    """Handle admin access request from device"""
+    try:
+        # Parse user ID from callback data
+        user_id = callback.data.replace("admin_request:", "")
+
+        # Send notification to admin
+        admin_message = (
+            "🔑 <b>Admin Access Request</b>\n\n"
+            f"👤 <b>User:</b> {callback.from_user.first_name} (@{callback.from_user.username or 'unknown'})\n"
+            f"🆔 <b>User ID:</b> <code>{user_id}</code>\n"
+            f"📱 <b>Request Time:</b> {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}\n\n"
+            "This user is requesting admin access to control all devices.\n\n"
+            "Grant access?"
+        )
+
+        # Create approval/rejection buttons
+        from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [
+                InlineKeyboardButton(text="✅ Grant Access", callback_data=f"admin_grant:{user_id}"),
+                InlineKeyboardButton(text="❌ Deny Access", callback_data=f"admin_deny:{user_id}")
+            ]
+        ])
+
+        # Send to admin user
+        if settings.ADMIN_USER_ID:
+            await callback.bot.send_message(
+                chat_id=settings.ADMIN_USER_ID,
+                text=admin_message,
+                parse_mode="HTML",
+                reply_markup=keyboard
+            )
+
+        await callback.message.edit_text(
+            "📤 <b>Admin Access Request Sent!</b>\n\n"
+            "Your request has been sent to the admin. You will receive a notification once it's approved or denied.",
+            parse_mode="HTML",
+            reply_markup=None
+        )
+
+    except Exception as e:
+        print(f"Error handling admin request: {e}")
+        await callback.message.edit_text(
+            "❌ <b>Error:</b> Failed to send admin access request.",
+            parse_mode="HTML",
+            reply_markup=None
+        )
+
+    await callback.answer()
+
+
+@start_router.callback_query(lambda c: c.data.startswith("admin_grant:") or c.data.startswith("admin_deny:"))
+async def handle_admin_approval(callback: CallbackQuery):
+    """Handle admin approval/denial of device access"""
+    try:
+        parts = callback.data.split(":")
+        action = parts[0]  # "admin_grant" or "admin_deny"
+        user_id = parts[1]
+
+        if action == "admin_grant":
+            # Grant admin access to the user
+            response_message = (
+                "✅ <b>Admin Access Granted!</b>\n\n"
+                f"👤 <b>User:</b> {callback.from_user.first_name}\n"
+                f"🆔 <b>User ID:</b> <code>{user_id}</code>\n\n"
+                "This user now has admin access to control all devices."
+            )
+
+            # Notify the requesting user
+            await callback.bot.send_message(
+                chat_id=user_id,
+                text="✅ <b>Admin Access Approved!</b>\n\nYour device now has admin privileges to control all devices.",
+                parse_mode="HTML"
+            )
+
+        else:  # admin_deny
+            response_message = (
+                "❌ <b>Admin Access Denied</b>\n\n"
+                f"👤 <b>User:</b> {callback.from_user.first_name}\n"
+                f"🆔 <b>User ID:</b> <code>{user_id}</code>\n\n"
+                "Admin access request was denied."
+            )
+
+            # Notify the requesting user
+            await callback.bot.send_message(
+                chat_id=user_id,
+                text="❌ <b>Admin Access Denied</b>\n\nYour admin access request was not approved.",
+                parse_mode="HTML"
+            )
+
+        await callback.message.edit_text(response_message, parse_mode="HTML", reply_markup=None)
+
+    except Exception as e:
+        print(f"Error handling admin approval: {e}")
+        await callback.message.edit_text(
+            "❌ <b>Error:</b> Failed to process admin request.",
+            parse_mode="HTML",
+            reply_markup=None
+        )
+
     await callback.answer()
